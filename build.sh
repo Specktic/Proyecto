@@ -13,4 +13,4 @@ riscv64-unknown-elf-gcc -Wall -O2 -nostartfiles \
     RISCV/tea_decrypt.asm \
     -o build/tea.elf
 
-echo "✅ Compilación completa: build/tea.elf"
+echo "Compiled: build/tea.elf"
