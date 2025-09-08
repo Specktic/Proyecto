@@ -1,23 +1,24 @@
 ENTRY(_start)
 
-SECTIONS
-{
-  . = 0x80000000;
+SECTIONS {
+  . = 0x80000000;   /* Punto de entrada típico en QEMU virt */
 
   .text : {
-    *(.text*)
+    *(.text)
   }
 
   .rodata : {
-    *(.rodata*)
+    *(.rodata)
   }
 
   .data : {
-    *(.data*)
+    *(.data)
+    *(.sdata)
   }
 
   .bss : {
-    *(.bss*)
+    *(.bss)
+    *(.sbss)
     *(COMMON)
   }
 }
