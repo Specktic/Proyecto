@@ -1,9 +1,10 @@
     .globl _start
 _start:
-    la sp, stack_top    # Inicializar la pila
-    call main           # Llamar a main
-1:  j 1b                # Bucle infinito al terminar
+    la sp, stack_top
+    call main
+1:  j 1b
 
     .section .bss
-    .space 4096         # Espacio de pila (4KB)
+    .space 4096
 stack_top:
+
