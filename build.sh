@@ -1,29 +1,28 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
+
 echo "🔨 Compilando proyecto C + RISC-V bare-metal RV64 (mcmodel=medany)..."
 
-# limpiar y preparar
-rm -rf build
 mkdir -p build
 
-# 1) compilar startup (asm)
-riscv64-unknown-elf-gcc -c -x assembler \
-  -march=rv64i -mabi=lp64 -mcmodel=medany \
-  RISCV/startup.asm -o build/startup.o
+# Compilar startup.asm
+riscv64-unknown-elf-gcc -c -x assembler -march=rv64i -mabi=lp64 RISCV/startup.asm -o build/startup.o
 
-# 2) compilar main.c (C)
-riscv64-unknown-elf-gcc -c \
-  -O2 -ffreestanding -fno-builtin \
-  -march=rv64i -mabi=lp64 -mcmodel=medany \
-  C/main.c -o build/main.o
+# Compilar tea_encrypt.asm
+riscv64-unknown-elf-gcc -c -x assembler -march=rv64i -mabi=lp64 RISCV/tea_encrypt.asm -o build/tea_encrypt.o
 
-# 3) convertir msg.txt en objeto binario
-riscv64-unknown-elf-ld -r -b binary msg.txt -o build/msg.o
+# Compilar tea_decrypt.asm
+riscv64-unknown-elf-gcc -c -x assembler -march=rv64i -mabi=lp64 RISCV/tea_decrypt.asm -o build/tea_decrypt.o
 
-# 4) enlazar todo (usar mcmodel=medany en el enlace)
-riscv64-unknown-elf-gcc -nostdlib -nostartfiles -T linker.ld \
-  -mcmodel=medany \
-  build/startup.o build/main.o build/msg.o \
-  -o build/tea.elf
+# Compilar putchars.asm
+riscv64-unknown-elf-gcc -c -x assembler -march=rv64i -mabi=lp64 RISCV/putchars.asm -o build/putchars.o
+
+# Compilar main.c
+riscv64-unknown-elf-gcc -c -O2 -march=rv64i -mabi=lp64 C/main.c -o build/main.o
+
+# Enlazar todo
+riscv64-unknown-elf-gcc -T linker.ld \
+    build/startup.o build/tea_encrypt.o build/tea_decrypt.o build/putchars.o build/main.o \
+    -o build/tea.elf -nostdlib -nostartfiles
 
 echo "✅ Compilación finalizada: build/tea.elf"

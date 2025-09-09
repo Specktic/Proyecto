@@ -1,30 +1,25 @@
-/* C/main.c  --  bare-metal RV64 sin includes */
+#include <stdint.h>
 
-/* símbolos del objeto binario (generado desde msg.txt) */
-extern const unsigned char _binary_msg_txt_start[];
-extern const unsigned char _binary_msg_txt_end[];
+// Assembly functions (defined in tea_encrypt.asm and tea_decrypt.asm)
+extern void tea_encrypt(uint32_t *v, uint32_t *key);
+extern void tea_decrypt(uint32_t *v, uint32_t *key);
 
-/* prototipos */
-void putchars(unsigned char c);
+// Assembly function to print a string to UART
+extern void putchars(const char *s);
 
-/* función que recorre el buffer y lo imprime byte a byte */
-int main(void) {
-    const unsigned char *p = _binary_msg_txt_start;
-    const unsigned char *end = _binary_msg_txt_end;
+void main(void) {
+    uint32_t v[2] = {0x12345678, 0x9ABCDEF0};   // test block
+    uint32_t key[4] = {0x11111111, 0x22222222, 0x33333333, 0x44444444}; // test key
 
-    while (p < end) {
-        putchars(*p++);
-    }
+    putchars("Starting TEA test...\n");
 
-    /* quédese aquí */
-    while (1) { }
-    return 0;
+    tea_encrypt(v, key);
+    putchars("Encryption called.\n");
+
+    tea_decrypt(v, key);
+    putchars("Decryption called.\n");
+
+    putchars("End of TEA test.\n");
+    while (1); // loop forever to avoid exit
 }
 
-/* UART base (dirección usada por QEMU 'virt') */
-#define UART0 0x10000000UL
-
-void putchars(unsigned char c) {
-    volatile unsigned char *uart = (volatile unsigned char *)UART0;
-    *uart = c;
-}

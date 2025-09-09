@@ -7,11 +7,13 @@ docker run -it --name prcrv-tea-cont -v $(pwd):/home/rvqemu-dev/workspace prcrv-
 
 cd /home/rvqemu-dev/workspace
 
-chmod +x build.sh 
-chmod +x run-qemu.sh
+rm -rf build
     
 ./build.sh
 ./run-qemu.sh 
+
+chmod +x build.sh 
+chmod +x run-qemu.sh
 
 ==========================================================
 
