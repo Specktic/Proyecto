@@ -9,7 +9,7 @@ cd /home/rvqemu-dev/workspace
 
 chmod +x build.sh 
 chmod +x run-qemu.sh
-
+    
 ./build.sh
 ./run-qemu.sh 
 
