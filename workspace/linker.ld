@@ -1,45 +1,39 @@
-/* linker.ld - Script de enlazado mínimo para bare-metal RISC-V */
+/* linker.ld - Bare-metal RISC-V RV32 para QEMU virt */
 
-ENTRY(_start)  /* Punto de entrada: definido en startup.asm */
+/* Punto de entrada */
+ENTRY(_start)
 
+/* Memoria simulada por QEMU: 
+   - RAM en 0x80000000 (128 MB por defecto en -machine virt)
+   - UART en 0x10000000 (no lo definimos aquí, se accede directo por MMIO) */
 MEMORY
 {
-    RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 16M
+  RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 128M
 }
 
+/* Layout de secciones */
 SECTIONS
 {
-    /* Sección de código */
-    .text :
-    {
-        _text_start = .;
-        *(.text*)
-        _text_end = .;
-    } > RAM
+  . = ORIGIN(RAM);
 
-    /* Sección de datos inicializados */
-    .data :
-    {
-        _data_start = .;
-        *(.data*)
-        _data_end = .;
-    } > RAM
+  .text : {
+    KEEP(*(.init))         /* código de arranque */
+    *(.text .text.*)       /* código del programa */
+    *(.rodata .rodata.*)   /* datos de solo lectura */
+  } > RAM
 
-    /* Sección de datos no inicializados (bss) */
-    .bss :
-    {
-        _bss_start = .;
-        *(.bss*)
-        *(COMMON)
-        _bss_end = .;
-    } > RAM
+  .data : {
+    *(.data .data.*)
+  } > RAM
 
-    /* Incluir los símbolos del archivo msg.txt convertido a objeto */
-    .rodata :
-    {
-        _binary_msg_txt_start = .;
-        *(.rodata*)
-        _binary_msg_txt_end = .;
-    } > RAM
+  .bss (NOLOAD) : {
+    __bss_start = .;
+    *(.bss .bss.*)
+    *(COMMON)
+    __bss_end = .;
+  } > RAM
+
+  . = ALIGN(4);
+  end = .;
+  PROVIDE(_end = .);
 }
-

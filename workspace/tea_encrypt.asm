@@ -1,51 +1,62 @@
-    .section .text
-    .globl tea_encrypt
+    .text
+    .global tea_encrypt
     .type tea_encrypt, @function
 
-# void tea_encrypt(uint8_t *msg, uint32_t key[4])
-# Entrada:
-#   a0 = puntero al buffer del mensaje
-#   a1 = puntero a la clave (4x32 bits)
+# a0 = msg pointer
+# a1 = key pointer (4 x uint32_t)
+# a2 = length in bytes (múltiplo de 8)
 tea_encrypt:
-    # Cargar bloque de 64 bits (2 palabras)
-    lw t0, 0(a0)         # v0
-    lw t1, 4(a0)         # v1
+    add t0, a0, zero       # t0 = ptr al buffer
+    add t1, a2, zero       # t1 = longitud restante
 
     # Cargar clave
-    lw t2, 0(a1)         # k0
-    lw t3, 4(a1)         # k1
-    lw t4, 8(a1)         # k2
-    lw t5, 12(a1)        # k3
+    lw t2, 0(a1)           # key[0]
+    lw t3, 4(a1)           # key[1]
+    lw t4, 8(a1)           # key[2]
+    lw t5, 12(a1)          # key[3]
 
-    # Inicializar suma y delta
-    li t6, 0             # sum
-    li a6, 0x9e3779b9    # delta
+encrypt_block_loop:
+    beq t1, zero, encrypt_done
 
-    # 32 rondas de cifrado
-    li a0, 32            # contador de rondas
-encrypt_loop:
-    add t6, t6, a6
-    slli t2, t1, 4       # tmp1 = v1 << 4
-    add t2, t2, t2       # tmp1 += k0
-    srli t3, t1, 5       # tmp2 = v1 >> 5
-    add t3, t3, t3       # tmp2 += k1
-    xor t0, t0, t2
-    xor t0, t0, t3
+    # Cargar bloque de 64 bits: v0 = t6, v1 = a3
+    lw t6, 0(t0)           # v0
+    lw a3, 4(t0)           # v1
+
+    li a4, 0               # sum = 0
+    li a5, 0x9E3779B9      # delta
+    li a6, 32              # rondas
+
+tea_round_loop:
+    add a4, a4, a5         # sum += delta
+
+    # v0 += ((v1<<4)+k0) ^ (v1+sum) ^ ((v1>>5)+k1)
+    slli t0, a3, 4
+    add t0, t0, t2
+    add t0, t0, a3
+    srli t1, a3, 5
+    add t1, t1, t3
+    xor t0, t0, t1
+    add t6, t6, t0
+
+    # v1 += ((v0<<4)+k2) ^ (v0+sum) ^ ((v0>>5)+k3)
+    slli t0, t6, 4
+    add t0, t0, t4
     add t0, t0, t6
+    srli t1, t6, 5
+    add t1, t1, t5
+    xor t0, t0, t1
+    add a3, a3, t0
 
-    slli t2, t0, 4
-    add t2, t2, t4
-    srli t3, t0, 5
-    add t3, t3, t5
-    xor t1, t1, t2
-    xor t1, t1, t3
-    add t1, t1, t6
-
-    addi a0, a0, -1
-    bnez a0, encrypt_loop
+    addi a6, a6, -1
+    bnez a6, tea_round_loop
 
     # Guardar bloque cifrado
-    sw t0, 0(a0)
-    sw t1, 4(a0)
+    sw t6, 0(t0)
+    sw a3, 4(t0)
 
+    addi t0, t0, 8
+    addi t1, t1, -8
+    j encrypt_block_loop
+
+encrypt_done:
     ret
