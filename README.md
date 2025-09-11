@@ -3,12 +3,15 @@ Guia
 
 cd /mnt/c/Users/mavic/OneDrive/Escritorio/Ar1_Pr1/Proyecto
 
-docker run -it --name prcrv-tea-cont -v $(pwd):/home/rvqemu-dev/workspace prcrv-tea /bin/bash
+docker build -t tea-riscv .
 
-cd /home/rvqemu-dev/workspace
+docker exec -it tea-riscv-cont /bin/bash
+
+cd workspace
+cd workspace
 
 rm -rf build
-    
+
 ./build.sh
 ./run-qemu.sh 
 
@@ -16,9 +19,3 @@ chmod +x build.sh
 chmod +x run-qemu.sh
 
 ==========================================================
-
-
-docker ps -a
-
-docker container prune
-
