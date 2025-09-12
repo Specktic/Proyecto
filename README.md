@@ -26,17 +26,17 @@ Se implementa el Tiny Encryption Algorithm (TEA) en un entorno bare-metal RISC-V
 
 ## 1. Estructura del proyecto
 
-.
-├── Dockerfile
-├── workspace/          
-│   ├──build.sh  
-│   ├──run-qemu.sh
-│   ├──linker.ld
-│   ├──main.c               # capa de alto nivel
-│   ├──startup.asm          # punto de entrada a capa de bajo nivel
-│   ├──tea_encrypt.asm      # cifrado TEA
-│   └──tea_decrypt.asm      # decifrado TEA
-└── README.md
+        .
+        ├── Dockerfile
+        ├── workspace/
+        │   ├──build.sh
+        │   ├──run-qemu.sh
+        │   ├──linker.ld
+        │   ├──main.c               # capa de alto nivel
+        │   ├──startup.asm          # punto de entrada a capa de bajo nivel
+        │   ├──tea_encrypt.asm      # cifrado TEA
+        │   └──tea_decrypt.asm      # decifrado TEA
+        └── README.md
 
 ## 2. Guía de inicio
 
