@@ -7,11 +7,11 @@
 # a1 = puntero a key[4]
 
 tea_decrypt:
-        # --- Cargar bloque ---
+        # Carga bloque
         lw      t0, 0(a0)        # v0
         lw      t1, 4(a0)        # v1
 
-        # --- Cargar clave ---
+        # Carga clave
         lw      s0, 0(a1)        # k0
         lw      s1, 4(a1)        # k1
         lw      s2, 8(a1)        # k2
@@ -22,7 +22,7 @@ tea_decrypt:
         li      t3, 32           # rounds = 32
 
 round_dec:
-        beqz    t3, save_block_dec   # si rounds == 0 salir
+        beqz    t3, save_block_dec   # si rondas == 0 salir
 
         # --- v1 -= ((v0<<4)+k2) ^ (v0+sum) ^ ((v0>>5)+k3) ---
         sll     t5, t0, 4        # t5 = v0 << 4
@@ -47,7 +47,7 @@ round_dec:
         # sum -= DELTA
         sub     t2, t2, t4
 
-        addi    t3, t3, -1       # rounds--
+        addi    t3, t3, -1       # rondas--
         j       round_dec
 
 save_block_dec:

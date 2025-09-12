@@ -7,11 +7,11 @@
 # a1 = puntero a key[4]
 
 tea_encrypt:
-        # --- Cargar bloque ---
+        # Carga bloque
         lw      t0, 0(a0)        # v0
         lw      t1, 4(a0)        # v1
 
-        # --- Cargar clave ---
+        # Carga clave
         lw      s0, 0(a1)        # k0
         lw      s1, 4(a1)        # k1
         lw      s2, 8(a1)        # k2

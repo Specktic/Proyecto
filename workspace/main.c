@@ -4,26 +4,29 @@
 #define MAX_MSG_SIZE 256
 #define UART_ADDR 0x10000000  // Dirección UART en QEMU
 
-// --- Ensamblador ---
+// Llamadas a Ensamblador
 extern void tea_encrypt(uint32_t v[2], uint32_t key[4]);
 extern void tea_decrypt(uint32_t v[2], uint32_t key[4]);
 
-// --- UART ---
+// Impresiones con UART 
 static inline void putchar_uart(char c) {
     volatile char *uart = (volatile char*)UART_ADDR;
     *uart = c;
 }
 
+// String con UART
 void print_string(const char *s) {
     while (*s) putchar_uart(*s++);
 }
 
+// Hexadecimales byte por byte con UART
 void print_hex_byte(uint8_t b) {
     const char hex[] = "0123456789ABCDEF";
     putchar_uart(hex[(b >> 4) & 0xF]);
     putchar_uart(hex[b & 0xF]);
 }
 
+// Buffer hexadecimal con UART
 void print_buffer_hex(uint8_t *buf, uint32_t len) {
     for (uint32_t i = 0; i < len; i++) {
         print_hex_byte(buf[i]);
@@ -32,6 +35,7 @@ void print_buffer_hex(uint8_t *buf, uint32_t len) {
     putchar_uart('\n');
 }
 
+// Buffer ASCII con UART
 void print_buffer_ascii(uint8_t *buf, uint32_t len) {
     for (uint32_t i = 0; i < len; i++) {
         char c = buf[i];
@@ -41,13 +45,14 @@ void print_buffer_ascii(uint8_t *buf, uint32_t len) {
     putchar_uart('\n');
 }
 
-// --- Padding ---
+// Padding
 uint32_t padded_length(uint32_t len) {
     uint32_t rem = len & (BLOCK_SIZE - 1); // len % 8 pero sin división
     if (rem == 0) return len;
     return len + (BLOCK_SIZE - rem);
 }
 
+// Copia de mensaje con padding a buffer
 void copy_and_pad(uint8_t *dst, uint8_t *src, uint32_t len) {
     uint32_t pad_len = padded_length(len);
     for (uint32_t i = 0; i < pad_len; i++) {
@@ -55,12 +60,13 @@ void copy_and_pad(uint8_t *dst, uint8_t *src, uint32_t len) {
     }
 }
 
-int main(void) {
-    // --- Mensaje fijo dentro del código ---
-    uint8_t msg[] = "HOLA1234";
-    uint32_t msg_len = sizeof(msg) - 1; // sin incluir el '\0'
 
-    // --- Clave fija ---
+int main(void) {
+    // Mensaje a cifrar
+    uint8_t msg[] = "HOLA1234";
+    uint32_t msg_len = sizeof(msg) - 1;
+
+    // Clave para cifrar
     uint32_t key[4] = { 
         0x12345678, 
         0x9ABCDEF0, 
@@ -68,14 +74,14 @@ int main(void) {
         0x76543210 
     };
 
-    // --- Copiar con padding ---
+    // Copiar con padding
     uint32_t padded_len = padded_length(msg_len);
     uint8_t buffer[MAX_MSG_SIZE];
     for (uint32_t i = 0; i < MAX_MSG_SIZE; i++) buffer[i] = 0;
 
     copy_and_pad(buffer, msg, msg_len);
 
-    // --- Mostrar mensaje original ---
+    // Mostrar mensaje original en hexadecimal y ASCII
     print_string("Mensaje original (hex): ");
     print_buffer_hex(buffer, padded_len);
 
@@ -104,10 +110,11 @@ int main(void) {
         buffer[i+7] = v[1] & 0xFF;
     }
 
+    // Mnesaje cifrado en hexadecimal 
     print_string("Mensaje cifrado (hex): ");
     print_buffer_hex(buffer, padded_len);
 
-    // --- Descifrado ---
+    // Descifrado
     for (uint32_t i = 0; i < padded_len; i += 8) {
         uint32_t v[2];
         v[0] = ((uint32_t)buffer[i] << 24) | ((uint32_t)buffer[i+1] << 16) |
@@ -127,6 +134,7 @@ int main(void) {
         buffer[i+7] = v[1] & 0xFF;
     }
 
+    // Mensaje decifrado hexadecimal y ASCII
     print_string("Mensaje descifrado (hex): ");
     print_buffer_hex(buffer, padded_len);
 
