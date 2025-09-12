@@ -1,23 +1,3 @@
-=========================================================
-
-cd /mnt/c/Users/mavic/OneDrive/Escritorio/Ar1_Pr1/Proyecto
-
-docker build -t tea-riscv .
-
-(correr y montar)
-docker run -it --rm \
-    -v $(pwd)/workspace:/home/rvqemu-dev/workspace \
-    tea-riscv /bin/bash
-
-cd workspace
-
-rm -rf build
-
-./build.sh
-./run-qemu.sh 
-
-=========================================================
-
 # Proyecto Individual Arquitectura de Computadores 1
 
 Se implementa el Tiny Encryption Algorithm (TEA) en un entorno bare-metal RISC-V RV32, permitiendo depuración con GDB.
