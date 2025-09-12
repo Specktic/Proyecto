@@ -10,7 +10,7 @@ riscv64-unknown-elf-objcopy -I binary -O elf32-littleriscv -B riscv msg.txt buil
 
 # Compilar startup.asm
 riscv64-unknown-elf-gcc -c -x assembler -march=rv32i -mabi=ilp32 startup.asm -o build/startup.o
-
+w
 # Compilar tea_encrypt.asm
 riscv64-unknown-elf-gcc -c -x assembler -march=rv32i -mabi=ilp32 tea_encrypt.asm -o build/tea_encrypt.o
 

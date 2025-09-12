@@ -1,61 +1,70 @@
-    .text
-    .global tea_decrypt
-    .type tea_decrypt, @function
+    .section .text
+    .globl tea_decrypt
 
-# a0 = msg pointer
-# a1 = key pointer (4 x uint32_t)
-# a2 = length in bytes (múltiplo de 8)
+# void tea_decrypt(uint8_t *msg, uint32_t key[4], uint32_t len)
+# a0 = msg, a1 = key, a2 = len
+
 tea_decrypt:
-    add t0, a0, zero       # t0 = ptr al buffer
-    add t1, a2, zero       # t1 = longitud restante
+    add     t0, a0, a2          # t0 = msg + len (fin del buffer)
 
-    # Cargar clave
-    lw t2, 0(a1)           # key[0]
-    lw t3, 4(a1)           # key[1]
-    lw t4, 8(a1)           # key[2]
-    lw t5, 12(a1)          # key[3]
+dec_loop:
+    bge     a0, t0, dec_done    # si a0 >= t0, terminamos
 
-decrypt_block_loop:
-    beq t1, zero, decrypt_done
+    # --- cargar bloque de 64 bits (dos palabras) ---
+    lw      t1, 0(a0)           # v0
+    lw      t2, 4(a0)           # v1
 
-    # Cargar bloque de 64 bits: v0 = t6, v1 = a3
-    lw t6, 0(t0)           # v0
-    lw a3, 4(t0)           # v1
+    # --- cargar clave K0..K3 ---
+    lw      t3, 0(a1)           # k0
+    lw      t4, 4(a1)           # k1
+    lw      t5, 8(a1)           # k2
+    lw      t6, 12(a1)          # k3
 
-    li a5, 0x9E3779B9      # delta
-    li a6, 32               # rondas
-    slli a4, a5, 5         # sum inicial = delta * rounds (0x9E3779B9 * 32)
+    # --- delta y sum inicial ---
+    li      s0, 0x9E3779B9      # delta
+    li      s1, 0xC6EF3720      # sum = delta * 32
 
-tea_decrypt_round_loop:
-    # v1 -= ((v0<<4)+k2) ^ (v0+sum) ^ ((v0>>5)+k3)
-    slli t0, t6, 4
-    add t0, t0, t4
-    add t0, t0, t6
-    srli t1, t6, 5
-    add t1, t1, t5
-    xor t0, t0, t1
-    sub a3, a3, t0
+    li      a3, 32              # contador = 32 rondas
 
-    # v0 -= ((v1<<4)+k0) ^ (v1+sum) ^ ((v1>>5)+k1)
-    slli t0, a3, 4
-    add t0, t0, t2
-    add t0, t0, a3
-    srli t1, a3, 5
-    add t1, t1, t3
-    xor t0, t0, t1
-    sub t6, t6, t0
+dec_round:
+    # v1 -= (((v0 << 4) + k2) ^ (v0 + sum) ^ ((v0 >> 5) + k3))
+    sll     a4, t1, 4           # (v0 << 4)
+    add     a4, a4, t5          # + k2
 
-    sub a4, a4, a5         # sum -= delta
-    addi a6, a6, -1
-    bnez a6, tea_decrypt_round_loop
+    add     a5, t1, s1          # v0 + sum
+    xor     a4, a4, a5
 
-    # Guardar bloque descifrado
-    sw t6, 0(t0)
-    sw a3, 4(t0)
+    srl     a5, t1, 5           # (v0 >> 5)
+    add     a5, a5, t6          # + k3
+    xor     a4, a4, a5
 
-    addi t0, t0, 8
-    addi t1, t1, -8
-    j decrypt_block_loop
+    sub     t2, t2, a4          # v1 -= ...
 
-decrypt_done:
+    # v0 -= (((v1 << 4) + k0) ^ (v1 + sum) ^ ((v1 >> 5) + k1))
+    sll     a4, t2, 4           # (v1 << 4)
+    add     a4, a4, t3          # + k0
+
+    add     a5, t2, s1          # v1 + sum
+    xor     a4, a4, a5
+
+    srl     a5, t2, 5           # (v1 >> 5)
+    add     a5, a5, t4          # + k1
+    xor     a4, a4, a5
+
+    sub     t1, t1, a4          # v0 -= ...
+
+    # sum -= delta
+    sub     s1, s1, s0
+
+    addi    a3, a3, -1
+    bnez    a3, dec_round
+
+    # --- guardar bloque descifrado ---
+    sw      t1, 0(a0)
+    sw      t2, 4(a0)
+
+    addi    a0, a0, 8           # avanzar al siguiente bloque
+    j       dec_loop
+
+dec_done:
     ret
