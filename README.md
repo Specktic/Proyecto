@@ -10,9 +10,6 @@ docker run -it --rm \
     -v $(pwd)/workspace:/home/rvqemu-dev/workspace \
     tea-riscv /bin/bash
 
-(entrar)
-docker exec -it tea-riscv-cont /bin/bash
-
 cd workspace
 
 rm -rf build
@@ -20,7 +17,10 @@ rm -rf build
 ./build.sh
 ./run-qemu.sh 
 
+==========================================================
+
+(entrar)
+docker exec -it tea-riscv-cont /bin/bash
+
 chmod +x build.sh 
 chmod +x run-qemu.sh
-
-==========================================================
